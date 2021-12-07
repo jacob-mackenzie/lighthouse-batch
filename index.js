@@ -109,7 +109,6 @@ function execute(options) {
     console.log(JSON.stringify(reports, null, 2));
   }
   
-  //jjm
   if (options.csvSummary){
 	  console.log(`Writing csv reports summary to ${csvSummaryPath}`);
 	  let reportsCsv = [];
@@ -324,7 +323,6 @@ function checkBudgets(summary, options) {
   return errors.length ? errors : undefined;
 }
 
-//jjm 2021-11-18
 function convertToTable(obj, prefix) {
   console.log(obj);
 	let keys = Object.keys(obj);
