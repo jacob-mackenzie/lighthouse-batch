@@ -5,6 +5,7 @@ const path = require("path");
 const crypto = require("crypto");
 const OUT = "./report/lighthouse";
 const REPORT_SUMMARY = "summary.json";
+const CSV_REPORT_SUMMARY = "summary.csv";
 const JSON_EXT = ".report.json";
 const CSV_EXT = ".report.csv";
 const HTML_EXT = ".report.html";
@@ -18,6 +19,7 @@ function execute(options) {
   const out = options.out || OUT;
   const lhScript = lighthouseScript(options, log);
   const summaryPath = path.join(out, REPORT_SUMMARY);
+  const csvSummaryPath = path.join(out, CSV_REPORT_SUMMARY);
 
   try {
     const files = fs.readdirSync(out);
@@ -105,6 +107,30 @@ function execute(options) {
   if (options.print) {
     console.log(`Printing reports summary`);
     console.log(JSON.stringify(reports, null, 2));
+  }
+  
+  //jjm
+  if (options.csvSummary){
+	  console.log(`Writing csv reports summary to ${csvSummaryPath}`);
+	  let reportsCsv = [];
+    for (let i = 0; i < reports.length; i++){
+      reportsCsv.push(convertToTable(reports[i],""));
+    }
+
+    let keys = Object.keys(reportsCsv[0]);
+    let outputTable = [];
+    outputTable.push(keys.join());
+
+    for(let i = 0; i < reportsCsv.length; i++){
+      let inputRow = reportsCsv[i];
+
+      let outputRow = [];
+      for (let j = 0; j < keys.length; j++){
+        outputRow.push(inputRow[keys[j]]);
+      }
+      outputTable.push(outputRow.join())
+    }
+    fs.writeFileSync(csvSummaryPath, outputTable.join("\n"), "utf8");
   }
 
   if (budgetErrors.length) {
@@ -296,6 +322,23 @@ function checkBudgets(summary, options) {
   }
 
   return errors.length ? errors : undefined;
+}
+
+//jjm 2021-11-18
+function convertToTable(obj, prefix) {
+  console.log(obj);
+	let keys = Object.keys(obj);
+	let output = {};
+	for (let i = 0; i < keys.length; i++){
+		let key = keys[i];
+		if (typeof obj[key] == "object"){
+			output = {...output, ...convertToTable(obj[key],key+"_")};
+		} else {
+			output[(prefix + key)] = obj[key];
+		}
+	}
+  
+	return output;
 }
 
 function log(v, msg) {
